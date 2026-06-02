@@ -1,0 +1,24 @@
+[build-system]
+requires = ["scikit-build-core>=0.9.7", "pybind11>=2.13.0"]
+build-backend = "scikit_build_core.build"
+
+[project]
+name = "equilibrium-solver"
+version = "0.1.0"
+authors = [
+    { name="chemo-tool" },
+]
+description = "C++ powered chemical equilibrium solver"
+readme = "Readme.md"
+requires-python = ">=3.10"
+dependencies = []
+
+[tool.scikit-build]
+wheel.packages = ["equilibrium_solver", "equilibrium_cpp"]
+cmake.build-type = "Release"
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+
+[project.urls]
+Homepage = "https://github.com/chemo-tool/equilibrium-solver"

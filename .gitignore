@@ -1,0 +1,20 @@
+# Python build artifacts
+build/
+dist/
+*.egg-info/
+
+# CMake build artifacts
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+
+# Bytecode and caches
+__pycache__/
+*.pyc
+*.pyo
+
+# IDE
+.vscode/
+.idea/
+.venv/
