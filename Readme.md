@@ -84,7 +84,7 @@ print(x_eq)
 
 Detailed usage instructions, input/output contract, and validation cases are provided in:
 
-- `examples/guide_and_validation.md`
+- [examples/guide_and_validation.md](https://github.com/chemo-tool/equilibrium-solver/blob/main/examples/guide_and_validation.md)
 
 This guide includes:
 
