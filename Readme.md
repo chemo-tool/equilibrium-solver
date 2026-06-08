@@ -80,73 +80,46 @@ x_eq = calculate_equilibrium(S, phases, elements, gibbs_energies, T, Pa)
 print(x_eq)
 ```
 
+## Documentation
+
+Detailed usage instructions, input/output contract, and validation cases are provided in:
+
+- `examples/guide_and_validation.md`
+
+This guide includes:
+
+- full API description for `calculate_equilibrium(...)`;
+- input preparation workflow and interpretation of outputs;
+- validation examples (ammonia synthesis, calcium carbonate decomposition, water-gas shift, steam reforming).
+
+## API Summary
+
 Public API:
 
-- `calculate_equilibrium(...)`: equilibrium calculation function.
+- `calculate_equilibrium(S, phases, elements, GibbsEnergies, T, Pa=1.0)`
 
-## Input Contract
+Input expectations (brief):
 
-For `calculate_equilibrium(S, phases, elements, GibbsEnergies, T, Pa=1.0)`:
-
-- `S`: non-empty 2D matrix with shape `(n_elements, n_species)`.
-- `phases`: length `n_species`, integer phase id for each species.
-- `elements`: length `n_elements`, non-negative and finite.
-- `GibbsEnergies`: length `n_species`, finite.
+- `S`: non-empty matrix `(n_elements, n_species)`;
+- `phases`: integer phase id per species, length `n_species`;
+- `elements`: total elemental amounts, length `n_elements`;
+- `GibbsEnergies`: standard Gibbs energies, length `n_species`;
 - `T > 0`, `Pa > 0`.
 
-## Output
+Returns:
 
-`calculate_equilibrium(...)` returns a list/array of equilibrium molar amounts of components
-in the order corresponding to the column order in the stoichiometric matrix `S`.
-The returned values are non-negative and satisfy the element-balance constraints.
+- equilibrium species amounts in the same species order as columns in `S`.
 
-The solver raises `ValueError`/`RuntimeError` (Python side) or
-`std::invalid_argument`/`std::runtime_error` (C++ side) when inputs are invalid
-or no feasible solution is found.
+Errors:
 
-## Numerical Method (Implemented in `src/solver_core.cpp`)
+- raises `ValueError`/`RuntimeError` (Python) or
+  `std::invalid_argument`/`std::runtime_error` (C++) for invalid input or infeasible solves.
 
-This solver is a custom constrained optimization routine with simplex-like basis
-updates and phase-coupled logarithmic terms.
+## Numerical Method (Brief)
 
-### Problem Form
-
-The method targets minimization of an objective of the form:
-
-- linear Gibbs contribution per species;
-- entropy-like phase mixing term `x_i * log(x_i / sum_phase)` for multi-species phases;
-- linear element-balance constraints `A * x = b`.
-
-Slack variables are introduced internally to enforce feasibility during iterations.
-
-### Core Ideas
-
-1. Species are reordered so each phase forms a contiguous block.
-2. A basis is initialized from slack variables.
-3. Reduced costs are computed for non-basis columns.
-4. Candidate moves are tested in two directions (increase/decrease variable).
-5. Step sizes are bounded by:
-	 - positivity of variables;
-	 - phase-coupled stability limits.
-6. A safeguarded line search (biased large-step then bisection) chooses the step.
-7. Basis replacement (`replace_basis`) performs a pivot in decomposition space.
-8. If no entering column is suitable, fallback phase-specific recovery moves are applied.
-9. At convergence, slack variables must be near zero; then post-processing restores
-	 non-basis values in multi-species phases.
-
-### Numerical Stabilization
-
-- Values are clamped to `>= 1e-60` before log operations.
-- Many pivot/projection decisions use tolerances around `1e-5` and `1e-12`.
-- Element totals are normalized by `max(elements)` before solving and rescaled back.
-
-### Pressure Handling
-
-Dimensionless transformed Gibbs energies are assembled as:
-
-- `-G / (R * T)` at `Pa == 1.0`;
-- additional `-log(Pa)` correction is applied for selected phase entries in the
-	current model branch.
+The C++ core (`src/solver_core.cpp`) solves a constrained Gibbs-energy minimization problem
+under element-balance equations with internal safeguards for numerical stability.
+For detailed usage and validation-oriented interpretation, see `examples/guide_and_validation.md`.
 
 ## Build/Packaging Notes
 
